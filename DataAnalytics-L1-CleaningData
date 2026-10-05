@@ -1,0 +1,397 @@
+# Data Quality & Data Cleaning
+
+## 📌 Project Overview
+
+This project focuses on **data quality assessment, data cleaning, standardisation, and preprocessing** using Python and Pandas.
+
+The main objective is to identify and fix common data quality problems such as:
+
+* Missing values
+* Duplicate records
+* Incorrect data types
+* Inconsistent formatting
+* Outliers
+* Invalid or anomalous values
+
+The cleaned dataset is then saved as a new CSV file for further analysis.
+
+---
+
+## 🛠️ Technologies Used
+
+* Python
+* Pandas
+* NumPy
+* Matplotlib
+* Seaborn
+* Jupyter Notebook / Google Colab
+
+---
+
+## 📂 Project Structure
+
+```text
+Data-Quality-Cleaning/
+│
+├── data/
+│   ├── original_dataset.csv
+│   └── cleaned_dataset.csv
+│
+├── Data_Quality_Cleaning.ipynb
+│
+├── README.md
+│
+└── images/
+    └── data_quality_report.png
+```
+
+---
+
+# 🔍 Data Quality Checklist
+
+## 1. Load Dataset and Data Quality Report
+
+The dataset was loaded using Pandas and initially inspected to understand its structure.
+
+The following checks were performed:
+
+* Number of rows and columns
+* Null values in each column
+* Duplicate rows
+* Data types
+* Minimum and maximum values
+* Possible value range anomalies
+
+### Example Code
+
+```python
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv("original_dataset.csv")
+
+print("Dataset Shape:", df.shape)
+
+print("\nData Types:")
+print(df.dtypes)
+
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+print("\nDuplicate Rows:")
+print(df.duplicated().sum())
+
+print("\nDescriptive Statistics:")
+print(df.describe(include="all"))
+```
+
+---
+
+# 2. Missing Data Handling
+
+Missing values were identified using:
+
+```python
+df.isnull().sum()
+```
+
+An appropriate strategy was selected depending on the type and meaning of each column.
+
+### Strategies Used
+
+| Column Type              | Strategy     | Reason                                                         |
+| ------------------------ | ------------ | -------------------------------------------------------------- |
+| Numerical                | Median       | Less affected by outliers                                      |
+| Numerical                | Mean         | Used when values are normally distributed                      |
+| Categorical              | Mode         | Most common category                                           |
+| Date/Time                | Forward Fill | Useful for sequential records                                  |
+| Critical/Invalid Records | Row Deletion | Used only when the missing record cannot be reliably recovered |
+
+### Example
+
+```python
+# Numerical column
+df["Age"] = df["Age"].fillna(df["Age"].median())
+
+# Categorical column
+df["Gender"] = df["Gender"].fillna(df["Gender"].mode()[0])
+```
+
+### Justification
+
+Median imputation is preferred for numerical columns when the data contains outliers because the median is more robust than the mean.
+
+Mode imputation is appropriate for categorical columns because it replaces missing values with the most frequently occurring category.
+
+---
+
+# 3. Duplicate Removal
+
+Duplicate records were identified using:
+
+```python
+duplicate_count = df.duplicated().sum()
+
+print("Duplicate rows:", duplicate_count)
+```
+
+Duplicate rows were removed using:
+
+```python
+df = df.drop_duplicates()
+
+print("Rows after removing duplicates:", len(df))
+```
+
+The number of duplicate rows removed was documented in the notebook.
+
+---
+
+# 4. Data Standardisation
+
+Inconsistent values and formatting were standardised to make the dataset consistent.
+
+### Example: Gender
+
+Before cleaning:
+
+```text
+Male
+male
+M
+Female
+female
+F
+```
+
+After cleaning:
+
+```text
+Male
+Female
+```
+
+### Example Code
+
+```python
+df["Gender"] = df["Gender"].replace({
+    "male": "Male",
+    "M": "Male",
+    "female": "Female",
+    "F": "Female"
+})
+```
+
+### Date Standardisation
+
+Dates were converted to proper datetime format:
+
+```python
+df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+```
+
+This ensures that date-based analysis can be performed correctly.
+
+---
+
+# 5. Outlier Detection
+
+Outliers were identified using the **IQR (Interquartile Range) method**.
+
+The IQR method was applied to numerical columns.
+
+```python
+numeric_columns = df.select_dtypes(include=np.number).columns
+
+for col in numeric_columns:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    outliers = df[
+        (df[col] < lower_bound) |
+        (df[col] > upper_bound)
+    ]
+
+    print(col, "Outliers:", len(outliers))
+```
+
+### Outlier Treatment
+
+Outliers were reviewed before deciding how to handle them.
+
+Depending on the column, outliers were:
+
+* Retained when they represented genuine observations
+* Capped when extreme values could distort analysis
+* Removed when they were clearly invalid
+
+Genuine extreme values were not automatically deleted.
+
+---
+
+# 6. Data Type Correction
+
+Each column was checked to ensure that it had an appropriate data type.
+
+### Examples
+
+| Data     | Correct Type    |
+| -------- | --------------- |
+| ID       | String          |
+| Date     | Datetime        |
+| Age      | Integer         |
+| Sales    | Float           |
+| Quantity | Integer         |
+| Gender   | Category/String |
+
+### Example Code
+
+```python
+df["ID"] = df["ID"].astype("string")
+
+df["Date"] = pd.to_datetime(
+    df["Date"],
+    errors="coerce"
+)
+
+df["Sales"] = pd.to_numeric(
+    df["Sales"],
+    errors="coerce"
+)
+```
+
+The corrected data types were verified using:
+
+```python
+print(df.dtypes)
+```
+
+---
+
+# 7. Before vs After Cleaning
+
+A summary table was created to compare the dataset before and after cleaning.
+
+### Metrics Compared
+
+* Null count
+* Duplicate count
+* Row count
+* Data type accuracy
+
+Example:
+
+| Metric         |     Before Cleaning |   After Cleaning |
+| -------------- | ------------------: | ---------------: |
+| Rows           |      Original count |    Cleaned count |
+| Null Values    |      Original nulls |  Remaining nulls |
+| Duplicate Rows | Original duplicates |                0 |
+| Dtype Issues   |   Identified issues | Corrected issues |
+
+### Example Code
+
+```python
+before_rows = len(df)
+
+before_nulls = df.isnull().sum().sum()
+
+before_duplicates = df.duplicated().sum()
+```
+
+After cleaning:
+
+```python
+after_rows = len(df)
+
+after_nulls = df.isnull().sum().sum()
+
+after_duplicates = df.duplicated().sum()
+```
+
+The results were presented in a comparison table in the notebook.
+
+---
+
+# 8. Save Cleaned Dataset
+
+After completing all cleaning operations, the cleaned dataset was exported as a new CSV file.
+
+```python
+df.to_csv(
+    "cleaned_dataset.csv",
+    index=False
+)
+```
+
+The original dataset was kept unchanged so that the cleaning process could be reproduced and compared.
+
+---
+
+# 📊 Data Cleaning Workflow
+
+```text
+Load Dataset
+      ↓
+Initial Data Quality Check
+      ↓
+Check Missing Values
+      ↓
+Handle Missing Data
+      ↓
+Remove Duplicate Rows
+      ↓
+Standardise Values
+      ↓
+Detect Outliers
+      ↓
+Handle Outliers
+      ↓
+Correct Data Types
+      ↓
+Before vs After Comparison
+      ↓
+Save Cleaned Dataset
+```
+
+---
+
+# ✅ Final Checklist
+
+* [x] Dataset loaded
+* [x] Data quality report created
+* [x] Missing values identified
+* [x] Missing values handled
+* [x] Duplicate rows identified
+* [x] Duplicate rows removed
+* [x] Inconsistent values standardised
+* [x] Dates converted to datetime
+* [x] Outliers detected using IQR
+* [x] Outliers reviewed and treated
+* [x] Data types corrected
+* [x] Before vs After summary created
+* [x] Cleaned dataset saved as CSV
+
+---
+
+# 🎯 Conclusion
+
+The dataset was systematically checked and cleaned to improve its overall quality and reliability.
+
+Missing values were handled using appropriate imputation strategies, duplicate records were removed, inconsistent formats were standardised, outliers were identified using the IQR method, and incorrect data types were corrected.
+
+The final cleaned dataset was exported as a new CSV file and is ready for further **Exploratory Data Analysis (EDA), visualisation, and machine learning tasks**.
+
+---
+
+## 👩‍💻 Author
+
+**Bhakya M**
+
+Data Analytics Learner
+
+Skills: Python | Pandas | NumPy | SQL | Excel | Power BI
