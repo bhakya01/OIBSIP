@@ -1,0 +1,465 @@
+# 📊 Retail Sales Data – Exploratory Data Analysis
+
+## 📌 Project Overview
+
+This project performs **Exploratory Data Analysis (EDA)** on a Retail Sales dataset using Python.
+
+The objective is to understand:
+
+* Sales trends over time
+* Customer demographics
+* Best-selling products
+* Revenue by product category
+* Relationships between numerical variables
+* Hidden/non-obvious business insights
+
+The analysis was performed using **Python, Pandas, Matplotlib, Seaborn, and Jupyter Notebook/Google Colab**.
+
+---
+
+## 🛠️ Technologies Used
+
+* 🐍 Python
+* 🐼 Pandas
+* 🔢 NumPy
+* 📊 Matplotlib
+* 📈 Seaborn
+* 📓 Jupyter Notebook / Google Colab
+
+---
+
+## 📂 Project Structure
+
+```text
+OIBSIP/
+│
+└── DataAnalytics-L1-EDARetailSales/
+    │
+    ├── Retail_Sales_EDA.ipynb
+    ├── README.md
+    │
+    ├── data/
+    │   └── Retail_Sales.csv
+    │
+    └── images/
+        ├── monthly_sales.png
+        ├── quarterly_sales.png
+        ├── age_group.png
+        ├── gender_breakdown.png
+        ├── top10_products.png
+        ├── category_revenue.png
+        ├── correlation_heatmap.png
+        └── additional_insight.png
+```
+
+---
+
+# 🎯 Project Objectives
+
+The main objectives of this project are:
+
+1. Inspect and understand the retail sales dataset.
+2. Calculate descriptive statistics.
+3. Analyse monthly and quarterly sales trends.
+4. Analyse customer demographics.
+5. Identify the top 10 best-selling products.
+6. Analyse revenue by product category.
+7. Identify correlations between numerical variables.
+8. Discover at least one non-obvious business insight.
+9. Provide actionable business recommendations.
+
+---
+
+# 1️⃣ Dataset Loading & Initial Inspection
+
+The dataset was loaded using Pandas.
+
+### Checks performed
+
+* Dataset shape
+* Column names
+* Data types
+* Missing/null values
+* Basic dataset information
+
+### Example Code
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("SuperStore_Orders.csv",encoding="latin-1")
+
+print("Dataset Shape:", df.shape)
+
+print("\nColumn Data Types:")
+print(df.dtypes)
+
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+print("\nDataset Information:")
+df.info()
+```
+
+### 🔎 Observation
+
+The initial inspection helped identify the size and structure of the dataset and determine whether any columns required additional cleaning or type conversion.
+
+---
+
+# 2️⃣ Descriptive Statistics
+
+Descriptive statistics were calculated for all numerical columns.
+
+The following measures were analysed:
+
+* Mean
+* Median
+* Mode
+* Standard deviation
+
+### Example Code
+
+```python
+numeric_columns = df.select_dtypes(include=np.number).columns
+
+statistics = pd.DataFrame({
+    "Mean": df[numeric_columns].mean(),
+    "Median": df[numeric_columns].median(),
+    "Mode": df[numeric_columns].mode().iloc[0],
+    "Standard Deviation": df[numeric_columns].std()
+})
+
+statistics
+```
+
+### 🔎 Observation
+
+The descriptive statistics provide an overview of the central tendency and variability of numerical variables. Comparing mean and median can also help identify potential skewness or unusual values.
+
+---
+
+# 3️⃣ Time Series Analysis
+
+Sales trends were analysed at both **monthly and quarterly levels**.
+
+First, the date column was converted into datetime format.
+
+```python
+df["Date"] = pd.to_datetime(df["Date"])
+```
+
+## 📅 Monthly Sales Trend
+
+```python
+monthly_sales = df.groupby(
+    df["Date"].dt.to_period("M")
+)["Total Amount"].sum()
+
+monthly_sales.index = monthly_sales.index.astype(str)
+
+plt.figure(figsize=(12, 5))
+plt.plot(monthly_sales.index, monthly_sales.values, marker="o")
+
+plt.title("Monthly Sales Trend")
+plt.xlabel("Month")
+plt.ylabel("Total Sales")
+plt.xticks(rotation=45)
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The monthly sales trend shows how revenue changes over time and helps identify periods of high and low sales activity.
+
+---
+
+## 📅 Quarterly Sales Trend
+
+```python
+quarterly_sales = df.groupby(
+    df["Date"].dt.to_period("Q")
+)["Total Amount"].sum()
+
+quarterly_sales.index = quarterly_sales.index.astype(str)
+
+plt.figure(figsize=(10, 5))
+plt.plot(quarterly_sales.index, quarterly_sales.values, marker="o")
+
+plt.title("Quarterly Sales Trend")
+plt.xlabel("Quarter")
+plt.ylabel("Total Sales")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+Quarterly analysis provides a broader view of business performance and helps identify strong or weak quarters.
+
+---
+
+# 4️⃣ Customer Demographics Analysis
+
+Customer demographics were analysed using:
+
+* Age groups
+* Gender
+
+## 👥 Customer Age Groups
+
+Age groups were created to make customer behaviour easier to compare.
+
+```python
+bins = [0, 18, 25, 35, 45, 55, 65, 100]
+
+labels = [
+    "0-18",
+    "19-25",
+    "26-35",
+    "36-45",
+    "46-55",
+    "56-65",
+    "65+"
+]
+
+df["Age Group"] = pd.cut(
+    df["Age"],
+    bins=bins,
+    labels=labels
+)
+
+age_counts = df["Age Group"].value_counts().sort_index()
+
+plt.figure(figsize=(10, 5))
+age_counts.plot(kind="bar")
+
+plt.title("Customer Age Group Distribution")
+plt.xlabel("Age Group")
+plt.ylabel("Number of Customers")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The age-group distribution identifies which customer segments contribute most to the dataset and helps businesses target marketing campaigns more effectively.
+
+---
+
+## 🚻 Gender Breakdown
+
+```python
+gender_counts = df["Gender"].value_counts()
+
+plt.figure(figsize=(7, 5))
+gender_counts.plot(kind="bar")
+
+plt.title("Customer Gender Distribution")
+plt.xlabel("Gender")
+plt.ylabel("Number of Customers")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The gender breakdown provides insight into the composition of the customer base and can support customer-specific marketing strategies.
+
+---
+
+# 5️⃣ Product Analysis
+
+Product performance was analysed using:
+
+* Top 10 best-selling products
+* Revenue by product category
+
+## 🏆 Top 10 Best-Selling Products
+
+```python
+top_products = (
+    df.groupby("Product Category")["Quantity"]
+    .sum()
+    .sort_values(ascending=False)
+    .head(10)
+)
+
+plt.figure(figsize=(10, 6))
+top_products.sort_values().plot(kind="barh")
+
+plt.title("Top 10 Best-Selling Products")
+plt.xlabel("Quantity Sold")
+plt.ylabel("Product")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The top-selling products represent the products with the highest sales volume. These products can be prioritised for inventory planning and promotional campaigns.
+
+> **Note:** If your dataset contains a separate `Product` column, use `Product` instead of `Product Category` in the grouping.
+
+---
+
+## 💰 Revenue by Product Category
+
+```python
+category_revenue = (
+    df.groupby("Product Category")["Total Amount"]
+    .sum()
+    .sort_values(ascending=False)
+)
+
+plt.figure(figsize=(10, 6))
+category_revenue.plot(kind="bar")
+
+plt.title("Revenue by Product Category")
+plt.xlabel("Product Category")
+plt.ylabel("Revenue")
+
+plt.xticks(rotation=45)
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The category-level revenue analysis identifies which product categories contribute most to overall revenue.
+
+---
+
+# 6️⃣ 🔥 Correlation Heatmap
+
+A correlation matrix was created to understand relationships between numerical variables.
+
+```python
+numeric_df = df.select_dtypes(include=np.number)
+
+correlation = numeric_df.corr()
+
+plt.figure(figsize=(10, 7))
+
+sns.heatmap(
+    correlation,
+    annot=True,
+    cmap="coolwarm",
+    fmt=".2f"
+)
+
+plt.title("Correlation Matrix of Numerical Variables")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The heatmap helps identify strongly related numerical variables. Strong correlation indicates that two variables tend to move together, although correlation does **not necessarily mean causation**.
+
+---
+
+# 7️⃣ 💡 Additional Non-Obvious Insight
+
+An additional analysis was performed to identify a business insight that is not immediately visible from basic sales totals.
+
+### Example: Sales by Age Group and Gender
+
+```python
+age_gender_sales = (
+    df.groupby(["Age Group", "Gender"])["Total Amount"]
+    .sum()
+    .unstack()
+)
+
+age_gender_sales.plot(
+    kind="bar",
+    figsize=(12, 6)
+)
+
+plt.title("Sales by Age Group and Gender")
+plt.xlabel("Age Group")
+plt.ylabel("Total Sales")
+plt.xticks(rotation=45)
+
+plt.show()
+```
+
+### 🔎 Observation
+
+This analysis can reveal whether particular age and gender segments generate disproportionately high sales.
+
+For example, if one age group consistently generates higher revenue than other groups, the business could create targeted promotions for that customer segment.
+
+---
+
+# 8️⃣ 📝 Markdown Observations
+
+Markdown cells were included throughout the notebook.
+
+Each major chart is followed by an observation explaining:
+
+* What the chart shows
+* Important patterns
+* High/low performing segments
+* Potential business implications
+
+This makes the notebook easier to understand and demonstrates the reasoning behind the analysis.
+
+---
+
+# 9️⃣ 🎯 Business Recommendations
+
+Based on the findings from the EDA, the following actionable recommendations can be considered:
+
+### 1. 📦 Improve Inventory Planning
+
+Maintain higher inventory levels for the top-selling products and monitor their stock regularly to reduce the risk of stockouts.
+
+### 2. 📢 Target High-Value Customer Segments
+
+Use the age and gender analysis to create targeted marketing campaigns for customer groups generating higher sales.
+
+### 3. 📈 Plan Promotions Around Sales Trends
+
+Use monthly and quarterly sales patterns to schedule discounts and promotional campaigns during historically weaker sales periods.
+
+### 4. 🛍️ Focus on High-Revenue Categories
+
+Prioritise high-performing product categories while investigating why lower-performing categories generate less revenue.
+
+### 5. 📊 Use Data-Driven Decision Making
+
+Regularly monitor sales, customer demographics, product performance, and key correlations to support inventory, marketing, and sales decisions.
+
+---
+
+# 🔟 Conclusion
+
+The Retail Sales EDA project provided valuable insights into **sales performance, customer demographics, product performance, and relationships between numerical variables**.
+
+The analysis included:
+
+* Initial dataset inspection
+* Descriptive statistics
+* Monthly sales analysis
+* Quarterly sales analysis
+* Customer age-group analysis
+* Gender analysis
+* Top 10 product analysis
+* Category revenue analysis
+* Correlation heatmap
+* Additional customer-segment analysis
+
+The findings can help businesses improve **inventory management, customer targeting, promotional planning, and product strategy**.
+
+---
+
+# ✅ Feature Checklist
+
+* [x] Load dataset and perform initial inspection
+* [x] Check shape, dtypes and
