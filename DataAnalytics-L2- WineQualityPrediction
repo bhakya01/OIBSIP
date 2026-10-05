@@ -1,0 +1,251 @@
+# 🍷 Wine Quality Classification
+
+## 📌 Project Overview
+
+This project uses **Machine Learning classification algorithms** to predict the quality category of wine based on its physicochemical properties.
+
+The original Wine Quality dataset contains quality scores typically ranging from **3 to 8**. Since the original scores are imbalanced, the quality scores are transformed into meaningful classes before training the classification models.
+
+The project compares three classification algorithms:
+
+* 🌲 Random Forest Classifier
+* 📉 Stochastic Gradient Descent (SGD) Classifier
+* 📐 Support Vector Classifier (SVC)
+
+The goal is to identify the best-performing model for predicting wine quality and determine which model is most suitable for potential deployment.
+
+---
+
+# 🎯 Objective
+
+The main objective is to predict wine quality based on physicochemical properties such as:
+
+* Fixed acidity
+* Volatile acidity
+* Citric acid
+* Residual sugar
+* Chlorides
+* Free sulfur dioxide
+* Total sulfur dioxide
+* Density
+* pH
+* Sulphates
+* Alcohol
+
+The models are evaluated and compared using accuracy, classification reports, and confusion matrices.
+
+---
+
+# 🛠️ Tech Stack
+
+| Technology       | Purpose                   |
+| ---------------- | ------------------------- |
+| Python           | Programming               |
+| Pandas           | Data manipulation         |
+| NumPy            | Numerical operations      |
+| Scikit-learn     | Machine Learning          |
+| Matplotlib       | Data visualization        |
+| Seaborn          | Statistical visualization |
+| Jupyter Notebook | Development environment   |
+
+### Machine Learning Models
+
+* Random Forest Classifier
+* SGD Classifier
+* Support Vector Classifier (SVC)
+
+---
+
+# 📂 Project Structure
+
+```text
+Wine-Quality-Classification/
+│
+├── Wine_Quality_Classification.ipynb
+├── README.md
+│
+├── data/
+│   └── winequality-red.csv
+│
+└── images/
+    ├── quality_distribution.png
+    ├── feature_distributions.png
+    ├── correlation_heatmap.png
+    ├── rf_confusion_matrix.png
+    ├── sgd_confusion_matrix.png
+    ├── svc_confusion_matrix.png
+    └── feature_importance.png
+```
+
+---
+
+# 1️⃣ Dataset Loading and Initial Inspection
+
+The Wine Quality dataset was loaded using Pandas.
+
+### Example Code
+
+```python
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv("WineQT1.csv", encoding="latin-1")
+
+print("Dataset Shape:", df.shape)
+
+print("\nColumn Names:")
+print(df.columns)
+
+print("\nData Types:")
+print(df.dtypes)
+
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+print("\nQuality Distribution:")
+print(df["quality"].value_counts().sort_index())
+```
+
+### 🔎 Observation
+
+The dataset contains physicochemical measurements for wines along with a quality score.
+
+The quality score is treated as the target variable for classification.
+
+---
+
+# 2️⃣ Class Distribution
+
+The distribution of wine quality scores was examined before modelling.
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8,5))
+
+sns.countplot(
+    data=df,
+    x="quality"
+)
+
+plt.title("Distribution of Wine Quality Scores")
+plt.xlabel("Quality Score")
+plt.ylabel("Number of Wines")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The quality classes are not evenly distributed.
+
+Some quality scores contain significantly more observations than others. In particular, middle-quality wines are generally more common than extreme quality scores.
+
+### ⚠️ Effect of Class Imbalance
+
+Class imbalance can cause a model to favour majority classes.
+
+For example, a model may achieve reasonable overall accuracy while performing poorly on rare quality classes.
+
+Therefore, stratified splitting and class-wise evaluation using a classification report and confusion matrix are important.
+
+---
+
+# 3️⃣ Exploratory Data Analysis
+
+EDA was performed to understand the distribution and relationships between physicochemical properties.
+
+## 📊 Distribution of Chemical Features
+
+```python
+df.hist(
+    figsize=(15,12),
+    bins=20
+)
+
+plt.suptitle(
+    "Distribution of Wine Physicochemical Features",
+    fontsize=16
+)
+
+plt.tight_layout()
+plt.show()
+```
+
+### 🔎 Observation
+
+The feature distributions show that different chemical properties have different scales and distributions.
+
+Variables such as alcohol, acidity, sulphates, and density may have different ranges, which is important when using scale-sensitive algorithms such as SGD and SVC.
+
+---
+
+# 4️⃣ Correlation Heatmap
+
+A correlation heatmap was created to identify relationships between physicochemical properties.
+
+```python
+plt.figure(figsize=(12,8))
+
+correlation = df.corr()
+
+sns.heatmap(
+    correlation,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm"
+)
+
+plt.title("Wine Quality Correlation Heatmap")
+
+plt.show()
+```
+
+### 🔎 Observation
+
+The heatmap helps identify positive and negative relationships between chemical features and wine quality.
+
+Correlation is useful for understanding linear relationships, but a high correlation does not necessarily mean that one variable causes another.
+
+---
+
+# 5️⃣ Feature Engineering
+
+The original quality score was converted into three meaningful categories:
+
+| Quality Score | Class  |
+| ------------- | ------ |
+| 3–4           | Low    |
+| 5–6           | Medium |
+| 7–8           | High   |
+
+### Example Code
+
+```python
+def quality_category(score):
+    if score <= 4:
+        return "Low"
+    elif score <= 6:
+        return "Medium"
+    else:
+        return "High"
+
+df["quality_category"] = df["quality"].apply(
+    quality_category
+)
+
+print(df["quality_category"].value_counts())
+```
+
+### Why 3 Classes?
+
+A three-class classification problem provides more meaningful information than simply predicting good/bad wine.
+
+The classes represent:
+
+* **Low** → Quality scores 3–4
+* **Medium** → Quality scores 5–6
+* **High** → Quality scores 7–8
+
+This grouping also reduces the number
